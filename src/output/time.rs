@@ -112,9 +112,44 @@ fn long(time: &DateTime<FixedOffset>) -> String {
     time.format("%Y-%m-%d %H:%M").to_string()
 }
 
+struct EngShort;
+#[rustfmt::skip]
+impl timeago::Language for EngShort {
+    fn clone_boxed(&self) -> timeago::BoxedLanguage { Box::new(Self{}) }
+    fn too_low (&self) -> &'static str { "now" }
+    fn too_high(&self) -> &'static str { "old" }
+    fn ago(&self)      -> &'static str { "NA" }
+    fn get_word(&self, tu: timeago::TimeUnit, x: u64) -> &'static str {
+        use timeago::TimeUnit::*;
+        if x == 1 {
+            match tu {
+                Nanoseconds | Microseconds | Milliseconds  =>  "NA",
+                Seconds => "sec",
+                Minutes => "min",
+                Hours   => "hour",
+                Days    => "day",
+                Weeks   => "week",
+                Months  => "month",
+                Years   => "year",
+            }
+        } else {
+            match tu {
+                Nanoseconds | Microseconds | Milliseconds  =>  "NA",
+                Seconds => "secs",
+                Minutes => "mins",
+                Hours   => "hours",
+                Days    => "days",
+                Weeks   => "weeks",
+                Months  => "months",
+                Years   => "years",
+            }
+        }
+    }
+}
+
 // #[allow(trivial_numeric_casts)]
 fn relative(time: &DateTime<FixedOffset>) -> String {
-    timeago::Formatter::new()
+    timeago::Formatter::with_language(EngShort)
         .ago("")
         .convert(Duration::from_secs(
             max(0, Local::now().timestamp() - time.timestamp())
